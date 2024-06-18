@@ -28,15 +28,27 @@ type FireFlyHttpClient struct {
 
 // set of structs for firefly transaction json data
 type FireFlyTransaction struct {
-	Description   string `json:"description"`
+	Description     string `json:"description"`
+	Category        string `json:"category_name"`
+	TransactionID   string `json:"transaction_journal_id"`
+	DestinationName string `json:"destination_name"`
+}
+
+type FireFlySentTransaction struct {
 	Category      string `json:"category_name"`
 	TransactionID string `json:"transaction_journal_id"`
 }
 
 type FireFlyTransactions struct {
 	FireWebHooks bool                 `json:"fire_webhooks"`
-	Id           string                  `json:"id"`
+	Id           string               `json:"id"`
 	Transactions []FireFlyTransaction `json:"transactions"`
+}
+
+type FireFlySentTransactions struct {
+	FireWebHooks bool                     `json:"fire_webhooks"`
+	Id           string                   `json:"id"`
+	Transactions []FireFlySentTransaction `json:"transactions"`
 }
 
 type FireFlyTransactionAttributes struct {
@@ -118,10 +130,10 @@ func (fc *FireFlyHttpClient) SendPutRequestWithToken(url, token string, data []b
 func (fc *FireFlyHttpClient) UpdateTransactionCategory(id, trans_id, category string) error {
 	//log.Printf("updating transaction: %s", id)
 
-	trn := FireFlyTransactions{
+	trn := FireFlySentTransactions{
 		FireWebHooks: false,
-		Id: id,
-		Transactions: []FireFlyTransaction{
+		Id:           id,
+		Transactions: []FireFlySentTransaction{
 			{
 				TransactionID: trans_id,
 				Category:      category,
@@ -166,7 +178,7 @@ func buildCategoryDescriptionSlice(data FireFlyTransactionsResponse) []string {
 	var res []string
 	for _, value := range data.Data {
 		for _, trnval := range value.Attributes.Transactions {
-			trn := fmt.Sprintf("%s,%s", trnval.Category, trnval.Description)
+			trn := fmt.Sprintf("%s,%s", trnval.Category, trnval.DestinationName)
 			res = append(res, trn)
 		}
 	}
@@ -178,7 +190,7 @@ func buildTransactionsDataset(data FireFlyTransactionsResponse) [][]string {
 	for _, value := range data.Data {
 		for _, trnval := range value.Attributes.Transactions {
 			//trn := fmt.Sprintf("%s,%s", trnval.Category, trnval.Description)
-			trn := []string{trnval.Category, trnval.Description}
+			trn := []string{trnval.Category, trnval.DestinationName}
 			res = append(res, trn)
 		}
 	}

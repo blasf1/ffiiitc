@@ -20,9 +20,10 @@ type WebHookHandler struct {
 
 // structs to handle payload from new transaction web hook
 type FireflyTrn struct {
-	Id          int64  `json:"transaction_journal_id"`
-	Description string `json:"description"`
-	Category    string `json:"category_name"`
+	Id int64 `json:"transaction_journal_id"`
+	// Description     string `json:"description"`
+	Category        string `json:"category_name"`
+	DestinationName string `json:"destination_name"`
 }
 
 type FireFlyContent struct {
@@ -63,11 +64,11 @@ func (wh *WebHookHandler) HandleNewTransactionWebHook(w http.ResponseWriter, r *
 	// perform classification
 	for _, trn := range hookData.Content.Transactions {
 		wh.Logger.Logf(
-			"INFO hook new trn: received (id: %v) (description: %s)",
+			"INFO hook new trn: received (id: %v) (destination: %s)",
 			hookData.Content.Id,
-			trn.Description,
+			trn.DestinationName,
 		)
-		cat := wh.Classifier.ClassifyTransaction(trn.Description)
+		cat := wh.Classifier.ClassifyTransaction(trn.DestinationName)
 		wh.Logger.Logf("INFO hook new trn: classified (id: %v) (category: %s)", hookData.Content.Id, cat)
 		err = wh.FireflyClient.UpdateTransactionCategory(strconv.FormatInt(hookData.Content.Id, 10), strconv.FormatInt(trn.Id, 10), cat)
 		if err != nil {
